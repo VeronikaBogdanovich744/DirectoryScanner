@@ -15,58 +15,80 @@ namespace DirectoryScanner
 {
     public class ViewModel: INotifyPropertyChanged
     {
-        
-
-        private file Dir;
-        public file dir { get { return Dir; }  set { dir = Dir; OnPropertyChanged(); } }
-  
-        public event PropertyChangedEventHandler? PropertyChanged;
+        public ObservableCollection<File> Nodes { get; set; }
+        public TreeView lvData { get; set; }
 
         public ViewModel()
         {
+            
+            /* Nodes = new ObservableCollection<file>();
 
-        }
-        public void startTracing(string path)
-        {
-            Dir = searchDirectory(path);
-        }
-        public void OnPropertyChanged([CallerMemberName] string prop = "")
-        {
-            if (PropertyChanged != null)
-                PropertyChanged(this, new PropertyChangedEventArgs(prop));
+             string[] directoryList = Directory.GetDirectories("C:\\Users\\Veronika\\Downloads");
+             foreach (var directory in directoryList)
+             {
+                 var f = new ViewModel.file(directory);
+                 string[] fileList = Directory.GetFiles(directory);
+                 foreach (var file in fileList)
+                 {
+                     f.files.Add(new ViewModel.file(System.IO.Path.GetFileName(file)));
+                 }
+                 Nodes.Add(f);
+                 //Nodes = nodes;
+             }
+             string[] filelist = Directory.GetFiles("C:\\Users\\Veronika\\Downloads");
+             foreach (var path in filelist)
+             {
+                 Nodes.Add(new ViewModel.file(System.IO.Path.GetFileName(path)));
+             }*/
         }
 
-        private file searchDirectory(string path)
-        {
-            var searchedDirectory = new file(path);
 
-            string[] directoryList = Directory.GetDirectories(searchedDirectory.Name);
+        public event PropertyChangedEventHandler? PropertyChanged;
+
+        protected void OnPropertyChanged(string propertyName)
+        {
+           // VerifyPropertyName(propertyName);
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
+
+
+        private void startTracing(object sender, RoutedEventArgs e)
+        {
+            string[] directoryList = Directory.GetDirectories("C:\\Users\\Veronika\\Downloads");
+
             foreach (var directory in directoryList)
             {
-                searchedDirectory.files.Add(searchDirectory(directory));
-
+                TreeViewItem item = new TreeViewItem();
+                // item.Tag = drive;
+                item.Header = System.IO.Path.GetFileName(directory);
+                string[] fileList = Directory.GetFiles(directory);
+                foreach (var path in fileList)
+                {
+                    item.Items.Add(System.IO.Path.GetFileName(path));
+                }
+                lvData.Items.Add(item);
+                //Thread.Sleep(1000);
             }
-            string[] filelist = Directory.GetFiles(searchedDirectory.Name);
-            foreach (var _path in filelist)
+
+            string[] filelist = Directory.GetFiles("C:\\Users\\Veronika\\Downloads");
+            foreach (var path in filelist)
             {
-                searchedDirectory.files.Add(new ViewModel.file(System.IO.Path.GetFileName(_path)));
+                TreeViewItem item = new TreeViewItem();
+                item.Header = System.IO.Path.GetFileName(path);
+                lvData.Items.Add(item);
             }
-            return searchedDirectory;
         }
-
-
-        public class file
-        {
-            public file(string name)
-            {
-                Name = name;
-                files = new ObservableCollection<file>();
-            }
-            public string Name { get; set; }
-            public ObservableCollection<file> files { get; set; }
-        }
-
-      
 
     }
+    /*
+    public class file
+    {
+        public file(string name)
+        {
+            Name = name;
+            files = new ObservableCollection<file>();
+        }
+        public string Name { get; set; }
+        public ObservableCollection<file> files { get; set; }
+    }*/
 }

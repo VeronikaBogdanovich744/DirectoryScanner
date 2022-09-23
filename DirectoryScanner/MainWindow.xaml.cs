@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -14,6 +15,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using System.Xml.Linq;
 
 namespace DirectoryScanner
 {
@@ -23,24 +25,47 @@ namespace DirectoryScanner
     public partial class MainWindow : Window
     {
         ViewModel viewModel;
+
+        public ObservableCollection<File> Nodes { get; set; }
         public MainWindow()
         {
             InitializeComponent();
+            Nodes = new ObservableCollection<File>();
 
-            viewModel = new ViewModel();
+           // treeView.ItemsSource = Nodes;
+
+            //viewModel = new ViewModel();
+
+            //treeView.ItemsSource = viewModel.Nodes;
         }
 
         private void startTracing(object sender, RoutedEventArgs e)
         {
-            viewModel.startTracing("C:\\Users\\Veronika\\Downloads");
+            // viewModel.startTracing("C:\\Users\\Veronika\\Downloads");
+            // viewModel = new ViewModel();
+
+           // Nodes = new ObservableCollection<file>();
+
+            string[] directoryList = Directory.GetDirectories("C:\\Users\\Veronika\\Downloads");
+            foreach (var directory in directoryList)
+            {
+                var f = new File(directory);
+                string[] fileList = Directory.GetFiles(directory);
+                foreach (var file in fileList)
+                {
+                    f.files.Add(new File(System.IO.Path.GetFileName(file)));
+                }
+                Nodes.Add(f);
+                //Nodes = nodes;
+            }
+            string[] filelist = Directory.GetFiles("C:\\Users\\Veronika\\Downloads");
+            foreach (var path in filelist)
+            {
+                Nodes.Add(new File(System.IO.Path.GetFileName(path)));
+            }
+
+            treeView1.ItemsSource = Nodes;
 
         }
-    }
-
-    public class Article
-    {
-        public string Name { get; set; }
-        public string Description { get; set; }
-        public string Path { get; set; }
     }
 }

@@ -7,18 +7,15 @@
         mc:Ignorable="d"
         Title="MainWindow" Height="770" Width="1000" Background="Gray">
     <Grid>
-        <!-- <TreeView x:Name="lvDataBinding" DisplayMemberPath="Name" Background="White" Margin="0,0,224,0" ItemsSource="{Binding dir.files, UpdateSourceTrigger=PropertyChanged}"/>-->
-        <TreeView x:Name="treeView1" Background="White" Margin="0,0,224,0" ItemsSource="{Binding viewModel.dir.files, UpdateSourceTrigger=PropertyChanged}">
+
+        <TreeView x:Name="treeView1">
             <TreeView.ItemTemplate>
-                <HierarchicalDataTemplate ItemsSource="{Binding Path=files}">
+                <HierarchicalDataTemplate DataType="{x:Type local:File}" ItemsSource="{Binding files}">
                     <TextBlock Text="{Binding Name}" />
                 </HierarchicalDataTemplate>
             </TreeView.ItemTemplate>
         </TreeView>
 
-
-
-        <!-- <Image Source="{Binding SelectedItem.Path, ElementName=lvDataBinding}" Stretch="None" />-->
         <Button x:Name="startButton" Margin="0,10,10,694" Height ="50" Width="202" Content="Start" Click="startTracing" RenderTransformOrigin="0.506,0.521" HorizontalAlignment="Right" BorderBrush="#FF130F0F" IsEnabled="True" Background="White"/>
         <TextBlock x:Name="pathBlock" Margin="596,83,20,304" Height ="50" Width="200" Text="Path to a directory"/>
         <TextBox x:Name="pathBox" Height ="50" Width="200" Margin="596,135,20,261" />
