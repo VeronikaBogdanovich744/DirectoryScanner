@@ -16,6 +16,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 using System.Xml.Linq;
+using static System.Net.WebRequestMethods;
 
 namespace DirectoryScanner
 {
@@ -30,13 +31,11 @@ namespace DirectoryScanner
         public MainWindow()
         {
             InitializeComponent();
-            Nodes = new ObservableCollection<File>();
 
-           // treeView.ItemsSource = Nodes;
+            viewModel = new ViewModel();
 
-            //viewModel = new ViewModel();
+            treeView1.ItemsSource = viewModel.Nodes;
 
-            //treeView.ItemsSource = viewModel.Nodes;
         }
 
         private void startTracing(object sender, RoutedEventArgs e)
@@ -44,28 +43,35 @@ namespace DirectoryScanner
             // viewModel.startTracing("C:\\Users\\Veronika\\Downloads");
             // viewModel = new ViewModel();
 
-           // Nodes = new ObservableCollection<file>();
+            // Nodes = new ObservableCollection<file>();
 
-            string[] directoryList = Directory.GetDirectories("C:\\Users\\Veronika\\Downloads");
-            foreach (var directory in directoryList)
-            {
-                var f = new File(directory);
-                string[] fileList = Directory.GetFiles(directory);
-                foreach (var file in fileList)
-                {
-                    f.files.Add(new File(System.IO.Path.GetFileName(file)));
-                }
-                Nodes.Add(f);
-                //Nodes = nodes;
-            }
-            string[] filelist = Directory.GetFiles("C:\\Users\\Veronika\\Downloads");
-            foreach (var path in filelist)
-            {
-                Nodes.Add(new File(System.IO.Path.GetFileName(path)));
-            }
+            /* string[] directoryList = Directory.GetDirectories("C:\\Users\\Veronika\\Downloads");
+             foreach (var directory in directoryList)
+             {
+                 var f = new File(directory);
+                 string[] fileList = Directory.GetFiles(directory);
+                 foreach (var file in fileList)
+                 {
+                     f.files.Add(new File(System.IO.Path.GetFileName(file)));
+                 }
+                 viewModel.Nodes.Add(f);
+                 //Nodes = nodes;
+             }
+             string[] filelist = Directory.GetFiles("C:\\Users\\Veronika\\Downloads");
+             foreach (var path in filelist)
+             {
+                 viewModel.Nodes.Add(new File(System.IO.Path.GetFileName(path)));
+             }*/
 
-            treeView1.ItemsSource = Nodes;
+            viewModel.setThreads();
 
+          //  treeView1.ItemsSource = viewModel.Nodes;
+
+        }
+
+        private void addFile(object sender, RoutedEventArgs e)
+        {
+            viewModel.Nodes.Add(new File("Testing file"));
         }
     }
 }

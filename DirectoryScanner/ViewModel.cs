@@ -10,36 +10,79 @@ using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Collections.ObjectModel;
 using System.Xml.Linq;
+using System.Threading;
+using System.Windows.Threading;
+using Microsoft.VisualBasic;
 
 namespace DirectoryScanner
 {
     public class ViewModel: INotifyPropertyChanged
     {
         public ObservableCollection<File> Nodes { get; set; }
-        public TreeView lvData { get; set; }
 
         public ViewModel()
         {
-            
-            /* Nodes = new ObservableCollection<file>();
+             Nodes = new ObservableCollection<File>();
+           
+        }
 
-             string[] directoryList = Directory.GetDirectories("C:\\Users\\Veronika\\Downloads");
-             foreach (var directory in directoryList)
-             {
-                 var f = new ViewModel.file(directory);
-                 string[] fileList = Directory.GetFiles(directory);
-                 foreach (var file in fileList)
-                 {
-                     f.files.Add(new ViewModel.file(System.IO.Path.GetFileName(file)));
-                 }
-                 Nodes.Add(f);
-                 //Nodes = nodes;
-             }
-             string[] filelist = Directory.GetFiles("C:\\Users\\Veronika\\Downloads");
-             foreach (var path in filelist)
-             {
-                 Nodes.Add(new ViewModel.file(System.IO.Path.GetFileName(path)));
-             }*/
+        public void setThreads()
+        {
+           /* int nWorkerThreads;
+            int nCompletionThreads;
+            ThreadPool.GetMaxThreads(out nWorkerThreads, out nCompletionThreads);
+            MessageBox.Show("Максимальное количество потоков: " + nWorkerThreads
+                + "\nПотоков ввода-вывода доступно: " + nCompletionThreads);
+            for (int i = 0; i < 5; i++)
+           */
+                ThreadPool.SetMaxThreads(1,1);
+                ThreadPool.QueueUserWorkItem(handleDirectory, new object[] { "C:\\Users\\Veronika\\Downloads", Nodes });
+           // Thread.Sleep(3000);
+
+           // Console.ReadLine();
+        }
+
+
+        void handleDirectory(Object stateInfo)
+        {
+            Array argArray = new object[2];
+            argArray = (Array)stateInfo;
+            string path = (string)argArray.GetValue(0);
+            ObservableCollection<File> node = (ObservableCollection<File>)argArray.GetValue(1);
+           
+
+
+          //  string path = stateInfo as string; //convert object to paath
+           // string[] directoryList = Directory.GetDirectories(path);
+
+            var currDirectory = new File(System.IO.Path.GetFileName(path));
+
+           //get Files
+            string[] fileList = Directory.GetFiles(path);
+            foreach (var filePath in fileList)
+            {
+                currDirectory.files.Add(new File(System.IO.Path.GetFileName(filePath)));
+            }
+
+            Application.Current.Dispatcher.BeginInvoke(new Action(() => node.Add(currDirectory)));
+
+            string[] directoryList = Directory.GetDirectories(path);
+
+            foreach (var directory in directoryList)
+            {
+                ThreadPool.QueueUserWorkItem(handleDirectory, new object[] { directory, currDirectory.files });
+            }
+
+
+            Thread.Sleep(1000);
+
+        }
+
+
+        static void JobForAThread(object state)
+        {         
+            MessageBox.Show("Поток "+ Thread.CurrentThread.ManagedThreadId);          
+            Thread.Sleep(50);
         }
 
 
@@ -66,8 +109,6 @@ namespace DirectoryScanner
                 {
                     item.Items.Add(System.IO.Path.GetFileName(path));
                 }
-                lvData.Items.Add(item);
-                //Thread.Sleep(1000);
             }
 
             string[] filelist = Directory.GetFiles("C:\\Users\\Veronika\\Downloads");
@@ -75,20 +116,8 @@ namespace DirectoryScanner
             {
                 TreeViewItem item = new TreeViewItem();
                 item.Header = System.IO.Path.GetFileName(path);
-                lvData.Items.Add(item);
             }
         }
 
     }
-    /*
-    public class file
-    {
-        public file(string name)
-        {
-            Name = name;
-            files = new ObservableCollection<file>();
-        }
-        public string Name { get; set; }
-        public ObservableCollection<file> files { get; set; }
-    }*/
 }
