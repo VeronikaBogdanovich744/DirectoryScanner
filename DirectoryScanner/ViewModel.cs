@@ -13,6 +13,8 @@ using System.Xml.Linq;
 using System.Threading;
 using System.Windows.Threading;
 using Microsoft.VisualBasic;
+using System.Windows.Data;
+using System.Windows.Shapes;
 
 namespace DirectoryScanner
 {
@@ -20,26 +22,26 @@ namespace DirectoryScanner
     {
         public ObservableCollection<File> Nodes { get; set; }
 
+        
+        object _itemsLock;
+
         public ViewModel()
         {
              Nodes = new ObservableCollection<File>();
-           
+            _itemsLock = new object();
+            BindingOperations.EnableCollectionSynchronization(Nodes, _itemsLock);
+
         }
 
         public void setThreads()
         {
-           /* int nWorkerThreads;
-            int nCompletionThreads;
-            ThreadPool.GetMaxThreads(out nWorkerThreads, out nCompletionThreads);
-            MessageBox.Show("Максимальное количество потоков: " + nWorkerThreads
-                + "\nПотоков ввода-вывода доступно: " + nCompletionThreads);
-            for (int i = 0; i < 5; i++)
-           */
-                ThreadPool.SetMaxThreads(1,1);
-                ThreadPool.QueueUserWorkItem(handleDirectory, new object[] { "C:\\Users\\Veronika\\Downloads", Nodes });
-           // Thread.Sleep(3000);
+              ThreadPool.SetMaxThreads(1,1);
+            //ThreadPool.QueueUserWorkItem(handleDirectory, new object[] { "C:\\Users\\Veronika\\Downloads", Nodes });
 
-           // Console.ReadLine();
+            ThreadStart start = () => handleDirectory(new object[] { "C:\\Users\\Veronika\\Downloads", Nodes });
+            var t = new Thread(start);
+            t.Start();
+            // DirectoryScanner.Commands.FileSystem.HandleDirectory("C:\\Users\\Veronika\\Downloads", Nodes);
         }
 
 
@@ -49,32 +51,33 @@ namespace DirectoryScanner
             argArray = (Array)stateInfo;
             string path = (string)argArray.GetValue(0);
             ObservableCollection<File> node = (ObservableCollection<File>)argArray.GetValue(1);
-           
-
-
-          //  string path = stateInfo as string; //convert object to paath
-           // string[] directoryList = Directory.GetDirectories(path);
 
             var currDirectory = new File(System.IO.Path.GetFileName(path));
-
-           //get Files
+            lock (_itemsLock)
+            {
+                node.Add(currDirectory);
+                //  Application.Current.Dispatcher.BeginInvoke(new Action(() => node.Add(currDirectory)));
+            }
+            //get Files
             string[] fileList = Directory.GetFiles(path);
             foreach (var filePath in fileList)
             {
-                currDirectory.files.Add(new File(System.IO.Path.GetFileName(filePath)));
+                    currDirectory.Files.Add(new File(System.IO.Path.GetFileName(filePath)));
+                
             }
-
-            Application.Current.Dispatcher.BeginInvoke(new Action(() => node.Add(currDirectory)));
 
             string[] directoryList = Directory.GetDirectories(path);
 
             foreach (var directory in directoryList)
             {
-                ThreadPool.QueueUserWorkItem(handleDirectory, new object[] { directory, currDirectory.files });
+                // ThreadPool.QueueUserWorkItem(handleDirectory, new object[] { directory, currDirectory.files });
+                ThreadStart start = () => handleDirectory(new object[] { directory, currDirectory.Files });
+                var t = new Thread(start);
+                t.Start();
             }
 
 
-            Thread.Sleep(1000);
+            //Thread.Sleep(1000);
 
         }
 

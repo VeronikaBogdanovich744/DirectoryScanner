@@ -27,14 +27,19 @@ namespace DirectoryScanner
     {
         ViewModel viewModel;
 
+        DirectoryViewModel directoryViewModel;
+
         public ObservableCollection<File> Nodes { get; set; }
         public MainWindow()
         {
             InitializeComponent();
 
             viewModel = new ViewModel();
+            directoryViewModel = new DirectoryViewModel();
 
-            treeView1.ItemsSource = viewModel.Nodes;
+            //treeView1.ItemsSource = viewModel.Nodes;
+
+            treeView1.ItemsSource = directoryViewModel.Files;
 
         }
 
@@ -63,7 +68,11 @@ namespace DirectoryScanner
                  viewModel.Nodes.Add(new File(System.IO.Path.GetFileName(path)));
              }*/
 
-            viewModel.setThreads();
+            
+            
+            //viewModel.setThreads();
+
+            directoryViewModel.traceMainDirectory();
 
           //  treeView1.ItemsSource = viewModel.Nodes;
 
@@ -71,7 +80,9 @@ namespace DirectoryScanner
 
         private void addFile(object sender, RoutedEventArgs e)
         {
-            viewModel.Nodes.Add(new File("Testing file"));
+            directoryViewModel.Files.Add(new File("Testing file"));
+            
+            //treeView1.ItemsSource = directoryViewModel.Files;
         }
     }
 }
