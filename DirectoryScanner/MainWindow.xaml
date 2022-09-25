@@ -18,6 +18,7 @@
             <TreeView.ItemContainerStyle>
                 <Style TargetType="TreeViewItem">
                     <Setter Property="IsExpanded" Value="True" />
+                    <Setter Property="FontSize" Value="16"/>
                 </Style>
             </TreeView.ItemContainerStyle>
         </TreeView>

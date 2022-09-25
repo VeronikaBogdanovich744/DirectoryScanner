@@ -15,40 +15,22 @@ namespace DirectoryScanner
 {
     public class File:INotifyPropertyChanged
     {
-      //  public object _lock = new object();
         public File(string name)
         {
             Name = name;
-            // files = new ObservableCollection<File>();
-            // files = new ConcurrentBag<File>();
             Files = new FilesCollection();
-            //  _lock = new object();
-            //BindingOperations.EnableCollectionSynchronization(files, _lock);
         }
 
         public File(string name,Dispatcher dispatcher)
         {
             Name = name;
-            // files = new ObservableCollection<File>();
-            // files = new ConcurrentBag<File>();
             Files = new FilesCollection(dispatcher);
-            //  _lock = new object();
-            //BindingOperations.EnableCollectionSynchronization(files, _lock);
         }
         private string name;
         public string Name  {get { return name; } set {
                 name = value;
-                OnPropertyChanged(nameof(Name));
+              //  OnPropertyChanged(nameof(Name));
 } }
-        // public ObservableCollection<File> files { get; set; }
-
-
-      /*  private ConcurrentBag<File> _files;
-        public ConcurrentBag<File> files { get { return _files; } set {
-                _files = value;
-                OnPropertyChanged(nameof(files));
-            } }
-      */
 
         public FilesCollection Files { get; set; }
         public event PropertyChangedEventHandler? PropertyChanged;
