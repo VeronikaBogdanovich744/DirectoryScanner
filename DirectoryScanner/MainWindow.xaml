@@ -6,9 +6,12 @@
         xmlns:local="clr-namespace:DirectoryScanner"
         mc:Ignorable="d"
         Title="MainWindow" Height="770" Width="1000" Background="Gray">
+    <Window.Resources>
+        <local:ViewModel x:Key="viewModel" />
+    </Window.Resources>
     <Grid>
 
-        <TreeView x:Name="treeView1" ItemsSource="{Binding Path=Files}">
+        <TreeView x:Name="treeView1" Margin="0,0,229,0">
             <TreeView.ItemTemplate>
                 <HierarchicalDataTemplate DataType="{x:Type local:File}" ItemsSource="{Binding Path = Files }">
                     <TextBlock Text="{Binding Path = Name }" />
@@ -23,9 +26,16 @@
             </TreeView.ItemContainerStyle>
         </TreeView>
 
-        <Button x:Name="startButton" Margin="0,10,10,694" Height ="50" Width="202" Content="Start" Click="startTracing" RenderTransformOrigin="0.506,0.521" HorizontalAlignment="Right" BorderBrush="#FF130F0F" IsEnabled="True" Background="White"/>
-        <TextBlock x:Name="pathBlock" Margin="596,83,20,304" Height ="50" Width="200" Text="Path to a directory"/>
-        <TextBox x:Name="pathBox" Height ="50" Width="200" Margin="596,135,20,261" />
-        <Button x:Name="stopButton" Height ="50" Width="200" Content="Stop" Click="addFile" Margin="596,367,20,10"/>
+        <Button x:Name="startButton" 
+                Margin="0,10,10,668" Width="202"
+                Content="Start" 
+                RenderTransformOrigin="0.506,0.521"
+                HorizontalAlignment="Right" 
+                BorderBrush="#FF130F0F" 
+                IsEnabled="True" 
+                Background="White" 
+              
+                Command="{Binding TraceDirectoryButton}"/>
+        <Button x:Name="stopButton" Content="Stop" Click="addFile" Margin="788,531,24,147"/>
     </Grid>
 </Window>

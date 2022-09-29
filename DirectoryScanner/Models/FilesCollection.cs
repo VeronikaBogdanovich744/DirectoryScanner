@@ -16,13 +16,11 @@ namespace DirectoryScanner.Models
         public event NotifyCollectionChangedEventHandler? CollectionChanged;
         private Dispatcher dispatcher;
 
-        protected virtual void OnCollectionChanged(NotifyCollectionChangedEventArgs e)
+        public void OnCollectionChanged()
         {
-            var handler = CollectionChanged;
-            if (handler != null)
-                handler(this, e);
+            if (CollectionChanged != null)
+                    dispatcher.BeginInvoke(new Action(() => CollectionChanged(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset))));
         }
-
         public FilesCollection() : base()
         {
             dispatcher = Dispatcher.CurrentDispatcher;
@@ -36,10 +34,7 @@ namespace DirectoryScanner.Models
         public new void Add(File file)
         {
             base.Add(file);
-            if (CollectionChanged != null)
-            {
-                dispatcher.BeginInvoke(new Action(() => CollectionChanged(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset))));
-            }
+            OnCollectionChanged();
         }
 
     }

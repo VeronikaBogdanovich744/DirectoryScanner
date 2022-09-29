@@ -16,6 +16,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 using System.Xml.Linq;
+using DirectoryScanner.Commands;
 using DirectoryScanner.Models;
 using static System.Net.WebRequestMethods;
 
@@ -26,25 +27,25 @@ namespace DirectoryScanner
     /// </summary>
     public partial class MainWindow : Window
     {
-        DirectoryTracer directoryViewModel;
+        //DirectoryTracer directoryViewModel;
+        public ViewModel viewModel { get; set; }
+
+       // public ICommand TraceDirectoryButton { get; set; }
 
         public MainWindow()
         {
             InitializeComponent();
 
-            directoryViewModel = new DirectoryTracer();
-            treeView1.ItemsSource = directoryViewModel.Files;
+            viewModel = new ViewModel();
+            treeView1.ItemsSource = viewModel.directoryTracer.Files;
+
+            this.DataContext = viewModel;
 
         }
-
-        private void startTracing(object sender, RoutedEventArgs e)
-        {
-            directoryViewModel.traceMainDirectory();
-        }
-
+        
         private void addFile(object sender, RoutedEventArgs e)
         {
-            directoryViewModel.Files.Add(new File("Testing file"));
+            viewModel.directoryTracer.Files.Add(new File("Testing file"));
 
         }
     }

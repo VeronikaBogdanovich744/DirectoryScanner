@@ -27,10 +27,7 @@ namespace DirectoryScanner
             Files = new FilesCollection(dispatcher);
         }
         private string name;
-        public string Name  {get { return name; } set {
-                name = value;
-              //  OnPropertyChanged(nameof(Name));
-} }
+        public string Name  {get { return name; } set { name = value; OnPropertyChanged(nameof(Name)); } }
 
         public FilesCollection Files { get; set; }
         public event PropertyChangedEventHandler? PropertyChanged;
