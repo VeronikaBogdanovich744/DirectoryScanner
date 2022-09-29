@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net.Sockets;
@@ -24,6 +25,14 @@ namespace DirectoryScanner.Models
         private Dispatcher dispatcher;
         private Semaphore _pool;
         private object locker;
+        private object threadLocker;
+        private delegate void DirectoryHandler(object parameters);
+        private ConcurrentQueue<DirectoryThread> _queue;
+        private bool IsWorking=false;
+        private CancellationTokenSource cancelToken = new CancellationTokenSource();
+        private ParallelOptions parOpts;
+
+        private List<int> threadsId;
         public FilesCollection Files { get; set; }
 
         public DirectoryTracer()
@@ -31,19 +40,37 @@ namespace DirectoryScanner.Models
             Files = new FilesCollection();
             dispatcher = Dispatcher.CurrentDispatcher;
             locker = new object();
-            _pool = new Semaphore(initialCount: 5, maximumCount: 5);
+            _pool = new Semaphore(initialCount: 10, maximumCount: 10);
+            threadsId = new List<int>();
+            threadLocker = new object();
+            _queue = new ConcurrentQueue<DirectoryThread>();
+
+            parOpts = new ParallelOptions();
+            parOpts.CancellationToken = cancelToken.Token;
+
+            // threads = new List<Thread>();
         }
 
         public void traceMainDirectory()
         {
-            ThreadStart start = () => handleDirectory(new object[] { "C:\\Users\\Veronika\\Downloads", Files });
-            var t = new Thread(start);
-            t.Start();
+            AddToQueue("C:\\Users\\Veronika", Files);
+            Task.Factory.StartNew(() => InvokeThreadInQueue());
+        }
+
+        public void StopTracing()
+        {
+            cancelToken.Cancel();
         }
 
         void handleDirectory(object stateInfo)
         {
-            _pool.WaitOne();
+            lock (threadLocker) {
+                threadsId.Add(Thread.CurrentThread.ManagedThreadId);
+            }
+
+           // Thread.CurrentThread.Name = "DirectoryTracer";
+
+            //_pool.WaitOne();
 
             Array argArray = new object[2];
             argArray = (Array)stateInfo;
@@ -54,6 +81,10 @@ namespace DirectoryScanner.Models
 
             AddDirectories(currDirectory, path);
 
+            lock (threadLocker)
+            {
+                threadsId.Remove(Thread.CurrentThread.ManagedThreadId);
+            }
             _pool.Release();
         }
 
@@ -65,31 +96,85 @@ namespace DirectoryScanner.Models
             {
                 Thread.Sleep(100);
                 node.Add(currDirectory);
-
-                string[] fileList = Directory.GetFiles(directory);
-                foreach (var filePath in fileList)
+                try
                 {
-                    Thread.Sleep(100);
-                    currDirectory.Files.Add(new File(System.IO.Path.GetFileName(filePath), dispatcher));
+
+                    DirectoryInfo directoryInfo = new DirectoryInfo(directory);
+                    FileInfo[] files = directoryInfo.GetFiles();
+                    var filtered = files.Where(f => !f.Attributes.HasFlag(FileAttributes.Hidden));
+
+                    foreach (var f in filtered)
+                    {
+                        if (parOpts.CancellationToken.IsCancellationRequested)
+                        {
+                            break;
+                        }
+                        Thread.Sleep(100);
+                        currDirectory.Files.Add(new File(f.Name, dispatcher));
+                    }
                 }
+                catch (UnauthorizedAccessException)
+                {
+
+                }
+
             }
             return currDirectory;
         }
 
         private void AddDirectories(File currDirectory, string directory)
         {
-            string[] directoryList = Directory.GetDirectories(directory);
-
-            foreach (var directory_ in directoryList)
+            try
             {
-                lock (locker)
+                string[] directoryList = Directory.GetDirectories(directory); 
+                
+                DirectoryInfo directoryInfo = new DirectoryInfo(directory);
+                DirectoryInfo[] files = directoryInfo.GetDirectories();
+                var filtered = files.Where(f => !f.Attributes.HasFlag(FileAttributes.Hidden));
+                foreach(var d in filtered)
                 {
-                    ThreadStart start = () => handleDirectory(new object[] { directory_, currDirectory.Files });
-
-                    var t = new Thread(start);
-                    t.Start();
+                    lock (locker)
+                    {
+                        if (parOpts.CancellationToken.IsCancellationRequested)
+                        {
+                            break;
+                        }
+                        AddToQueue(d.FullName, currDirectory.Files);
+                    }
                 }
+
             }
+            catch (UnauthorizedAccessException)
+            {
+
+            }
+        }
+
+        private void AddToQueue(String directory_, FilesCollection files)
+        {
+            DirectoryThread.Handler handler = new DirectoryThread.Handler(handleDirectory);
+            lock (threadLocker)
+            {
+                _queue.Enqueue(new DirectoryThread(handler, directory_, files));
+            }
+
+        }
+
+
+        private void InvokeThreadInQueue()
+        {
+            while (!parOpts.CancellationToken.IsCancellationRequested)
+            {
+                while (!_queue.IsEmpty && !parOpts.CancellationToken.IsCancellationRequested)
+                {
+                    _pool.WaitOne();
+                    DirectoryThread thread;
+                    _queue.TryDequeue(out thread);
+                    thread.Execute();
+                }
+
+            }
+            _queue.Clear();
         }
     }
 }

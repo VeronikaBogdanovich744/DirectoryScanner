@@ -36,6 +36,10 @@
                 Background="White" 
               
                 Command="{Binding TraceDirectoryButton}"/>
-        <Button x:Name="stopButton" Content="Stop" Click="addFile" Margin="788,531,24,147"/>
+        <Button x:Name="stopButton" 
+                Content="Stop"
+                Margin="788,531,24,147"
+                Command="{Binding StopDirectoryButton}"
+                />
     </Grid>
 </Window>

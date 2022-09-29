@@ -22,16 +22,9 @@ using static System.Net.WebRequestMethods;
 
 namespace DirectoryScanner
 {
-    /// <summary>
-    /// Interaction logic for MainWindow.xaml
-    /// </summary>
     public partial class MainWindow : Window
     {
-        //DirectoryTracer directoryViewModel;
         public ViewModel viewModel { get; set; }
-
-       // public ICommand TraceDirectoryButton { get; set; }
-
         public MainWindow()
         {
             InitializeComponent();
@@ -43,10 +36,5 @@ namespace DirectoryScanner
 
         }
         
-        private void addFile(object sender, RoutedEventArgs e)
-        {
-            viewModel.directoryTracer.Files.Add(new File("Testing file"));
-
-        }
     }
 }
