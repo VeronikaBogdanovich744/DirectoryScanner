@@ -16,20 +16,19 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 using System.Xml.Linq;
-using DirectoryScanner.Commands;
-using DirectoryScanner.Models;
+
 using static System.Net.WebRequestMethods;
 
 namespace DirectoryScanner
 {
     public partial class MainWindow : Window
     {
-        public ViewModel viewModel { get; set; }
+        public DirectoryScannerLibrary.ViewModels.ViewModel viewModel { get; set; }
         public MainWindow()
         {
             InitializeComponent();
 
-            viewModel = new ViewModel();
+            viewModel = new DirectoryScannerLibrary.ViewModels.ViewModel();
             treeView1.ItemsSource = viewModel.directoryTracer.Files;
 
             this.DataContext = viewModel;

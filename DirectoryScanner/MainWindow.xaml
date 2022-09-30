@@ -6,11 +6,8 @@
         xmlns:local="clr-namespace:DirectoryScanner"
         mc:Ignorable="d"
         Title="MainWindow" Height="770" Width="1000" Background="Gray">
-    <Window.Resources>
-        <local:ViewModel x:Key="viewModel" />
-    </Window.Resources>
-    <Grid>
 
+    <Grid>
         <TreeView x:Name="treeView1" Margin="0,0,229,0">
             <TreeView.ItemTemplate>
                 <HierarchicalDataTemplate DataType="{x:Type local:File}" ItemsSource="{Binding Path = Files }">
@@ -20,7 +17,7 @@
 
             <TreeView.ItemContainerStyle>
                 <Style TargetType="TreeViewItem">
-                    <Setter Property="IsExpanded" Value="True" />
+                    <Setter Property="IsExpanded" Value="False" />
                     <Setter Property="FontSize" Value="16"/>
                 </Style>
             </TreeView.ItemContainerStyle>

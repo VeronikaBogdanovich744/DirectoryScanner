@@ -1,23 +1,14 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.Collections.Specialized;
-using System.ComponentModel;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Net.Sockets;
-using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Windows.Shapes;
 using System.Windows.Threading;
-using System.Xml.Linq;
-using static System.Net.WebRequestMethods;
 
-namespace DirectoryScanner.Models
+namespace DirectoryScannerLibrary.Models
 {
     public class DirectoryTracer
     {
@@ -28,7 +19,7 @@ namespace DirectoryScanner.Models
         private object threadLocker;
         private delegate void DirectoryHandler(object parameters);
         private ConcurrentQueue<DirectoryThread> _queue;
-        private bool IsWorking=false;
+        private bool IsWorking = false;
         private CancellationTokenSource cancelToken = new CancellationTokenSource();
         private ParallelOptions parOpts;
 
@@ -47,8 +38,6 @@ namespace DirectoryScanner.Models
 
             parOpts = new ParallelOptions();
             parOpts.CancellationToken = cancelToken.Token;
-
-            // threads = new List<Thread>();
         }
 
         public void traceMainDirectory()
@@ -64,7 +53,8 @@ namespace DirectoryScanner.Models
 
         void handleDirectory(object stateInfo)
         {
-            lock (threadLocker) {
+            lock (threadLocker)
+            {
                 threadsId.Add(Thread.CurrentThread.ManagedThreadId);
             }
 
@@ -72,7 +62,7 @@ namespace DirectoryScanner.Models
             argArray = (Array)stateInfo;
             string path = (string)argArray.GetValue(0);
             FilesCollection node = (FilesCollection)argArray.GetValue(1);
-            
+
             var currDirectory = AddFiles(node, path);
 
             AddDirectories(currDirectory, path);
@@ -122,12 +112,12 @@ namespace DirectoryScanner.Models
         {
             try
             {
-                string[] directoryList = Directory.GetDirectories(directory); 
-                
+                string[] directoryList = Directory.GetDirectories(directory);
+
                 DirectoryInfo directoryInfo = new DirectoryInfo(directory);
                 DirectoryInfo[] files = directoryInfo.GetDirectories();
                 var filtered = files.Where(f => !f.Attributes.HasFlag(FileAttributes.Hidden));
-                foreach(var d in filtered)
+                foreach (var d in filtered)
                 {
                     lock (locker)
                     {
@@ -155,7 +145,6 @@ namespace DirectoryScanner.Models
             }
 
         }
-
 
         private void InvokeThreadInQueue()
         {
