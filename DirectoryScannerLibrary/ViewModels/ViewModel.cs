@@ -28,7 +28,7 @@ namespace DirectoryScannerLibrary.ViewModels
         public RelayCommand StopDirectoryButton { get; }
 
       
-        public DirectoryTracer directoryTracer;
+        public DirectoryTracer directoryTracer { get; }
         public ViewModel()
         {
             directoryTracer = new DirectoryTracer();

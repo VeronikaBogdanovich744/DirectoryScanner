@@ -4,6 +4,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
@@ -21,13 +22,34 @@ namespace DirectoryScannerLibrary.Models
             Files = new FilesCollection();
         }
 
-        public File(string name,Dispatcher dispatcher)
+        public File(string fullname,Dispatcher dispatcher)
         {
-            Name = name;
+            FullName = fullname;
+            Name = System.IO.Path.GetFileName(fullname);
+            //Name = name;
             Files = new FilesCollection(dispatcher);
+            id = base.GetHashCode(); 
+        }
+
+        public File(string fullname, long size, Dispatcher dispatcher)
+        {
+            FullName = fullname;
+            Name = System.IO.Path.GetFileName(fullname);
+            Files = new FilesCollection(dispatcher);
+            Size = size;
+            id = base.GetHashCode();
         }
         private string name;
         public string Name  {get { return name; } set { name = value; OnPropertyChanged(nameof(Name)); } }
+
+       // private string fullName;
+        public string FullName { get; set; }
+
+        private long size;
+        public long Size { get { return size; } set { size = value; OnPropertyChanged(nameof(Size)); } }
+
+
+        public int id { get; private set; }
 
         public FilesCollection Files { get; set; }
         public event PropertyChangedEventHandler? PropertyChanged;

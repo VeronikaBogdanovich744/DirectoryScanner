@@ -4,14 +4,26 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:DirectoryScanner"
+        xmlns:fa="http://schemas.fontawesome.io/icons/"
         mc:Ignorable="d"
         Title="MainWindow" Height="770" Width="1000" Background="Gray">
-
-    <Grid>
-        <TreeView x:Name="treeView1" Margin="0,0,229,0">
+    <Window.Resources >
+        <BooleanToVisibilityConverter x:Key="BoolToVisibilityConverter" />
+    </Window.Resources>
+    <Grid Margin="0,0,0,3">
+        <TreeView x:Name="treeView1" Margin="0,0,229,0" >
             <TreeView.ItemTemplate>
-                <HierarchicalDataTemplate DataType="{x:Type local:File}" ItemsSource="{Binding Path = Files }">
-                    <TextBlock Text="{Binding Path = Name }" />
+                <HierarchicalDataTemplate ItemsSource="{Binding Path = Value.Files}">
+                    <TextBlock>
+
+                        <TextBlock.Text>
+                            <MultiBinding StringFormat="{}{0} ({1} байт)">
+                                <Binding Path="Value.Name" />
+                                <Binding Path="Value.Size" />
+                            </MultiBinding>
+                        </TextBlock.Text>
+                    </TextBlock>
+
                 </HierarchicalDataTemplate>
             </TreeView.ItemTemplate>
 
@@ -22,6 +34,9 @@
                 </Style>
             </TreeView.ItemContainerStyle>
         </TreeView>
+
+        <fa:ImageAwesome x:Name="IconSpinner" DataContext="{Binding Path=directoryTracer}"  Icon="Spinner" Visibility="{Binding Path=IsWorking, Converter={StaticResource BoolToVisibilityConverter}}" Spin="True" Height="48" Width="48" RenderTransformOrigin="0.592,0.571" Margin="841,243,111,463" />
+        <ProgressBar Minimum="0" Maximum="100" Value="75" Height="20" Width="200" Margin="789,366,11,365"/>
 
         <Button x:Name="startButton" 
                 Margin="0,10,10,668" Width="202"

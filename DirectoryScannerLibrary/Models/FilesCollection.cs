@@ -2,6 +2,7 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Specialized;
+using System.ComponentModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -9,9 +10,11 @@ using System.Windows.Threading;
 
 namespace DirectoryScannerLibrary.Models
 {
-    public class FilesCollection : ConcurrentBag<File>, INotifyCollectionChanged
+    public class FilesCollection : ConcurrentDictionary<String,File>, INotifyCollectionChanged
     {
         public event NotifyCollectionChangedEventHandler? CollectionChanged;
+
+
         private Dispatcher dispatcher;
 
         public void OnCollectionChanged()
@@ -31,7 +34,7 @@ namespace DirectoryScannerLibrary.Models
 
         public new void Add(File file)
         {
-            base.Add(file);
+           var res =  base.TryAdd(file.FullName,file);
             OnCollectionChanged();
         }
 
