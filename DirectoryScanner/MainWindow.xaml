@@ -11,7 +11,7 @@
         <BooleanToVisibilityConverter x:Key="BoolToVisibilityConverter" />
     </Window.Resources>
     <Grid Margin="0,0,0,3">
-        <TreeView x:Name="treeView1" Margin="0,0,229,0" >
+        <TreeView x:Name="treeView1" Margin="0,0,263,0" >
             <TreeView.ItemTemplate>
                 <HierarchicalDataTemplate ItemsSource="{Binding Path = Value.Files}">
                     <TextBlock>
@@ -29,28 +29,40 @@
 
             <TreeView.ItemContainerStyle>
                 <Style TargetType="TreeViewItem">
-                    <Setter Property="IsExpanded" Value="False" />
+                    <Setter Property="IsExpanded" Value="True" />
                     <Setter Property="FontSize" Value="16"/>
                 </Style>
             </TreeView.ItemContainerStyle>
         </TreeView>
 
-        <fa:ImageAwesome x:Name="IconSpinner" DataContext="{Binding Path=directoryTracer}"  Icon="Spinner" Visibility="{Binding Path=IsWorking, Converter={StaticResource BoolToVisibilityConverter}}" Spin="True" Height="48" Width="48" RenderTransformOrigin="0.592,0.571" Margin="841,243,111,463" />
-        <ProgressBar Minimum="0" Maximum="100" Value="75" Height="20" Width="200" Margin="789,366,11,365"/>
+        <!-- <fa:ImageAwesome x:Name="IconSpinner" DataContext="{Binding Path=directoryTracer.queue}"  Icon="Spinner" Visibility="{Binding Path=IsWorking, Converter={StaticResource BoolToVisibilityConverter}}" Spin="True" Height="48" Width="48" RenderTransformOrigin="0.592,0.571" Margin="841,243,111,463" />
+        <ProgressBar Minimum="0" Maximum="100" Value="75" Height="20" Width="200" Margin="789,366,11,365"/>-->
 
         <Button x:Name="startButton" 
-                Margin="0,10,10,668" Width="202"
+                Margin="0,10,10,668" Width="236"
                 Content="Start" 
                 RenderTransformOrigin="0.506,0.521"
                 HorizontalAlignment="Right" 
                 BorderBrush="#FF130F0F" 
                 IsEnabled="True" 
                 Background="White" 
-              
                 Command="{Binding TraceDirectoryButton}"/>
+
+        <Button x:Name="openFileDialogButton" 
+                Margin="0,204,10,474" Width="236"
+                Content="Choose file" 
+                RenderTransformOrigin="0.506,0.521"
+                HorizontalAlignment="Right" 
+                BorderBrush="#FF130F0F" 
+                IsEnabled="True" 
+                Background="White" 
+                Command="{Binding OpenFileDialogButton}"/>
+
+        <TextBox Margin="742,298,10,394" FontSize="16" Text="{Binding SelectedPath}"/>
+
         <Button x:Name="stopButton" 
                 Content="Stop"
-                Margin="788,531,24,147"
+                Margin="754,531,10,147"
                 Command="{Binding StopDirectoryButton}"
                 />
     </Grid>

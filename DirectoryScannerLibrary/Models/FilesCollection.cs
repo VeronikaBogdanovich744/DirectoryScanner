@@ -3,6 +3,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -19,8 +20,13 @@ namespace DirectoryScannerLibrary.Models
 
         public void OnCollectionChanged()
         {
+
             if (CollectionChanged != null)
-                dispatcher.BeginInvoke(new Action(() => CollectionChanged(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset))));
+            {
+                
+                    dispatcher.BeginInvoke(DispatcherPriority.Background, new Action(() => CollectionChanged(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset))));
+                
+                }
         }
         public FilesCollection() : base()
         {

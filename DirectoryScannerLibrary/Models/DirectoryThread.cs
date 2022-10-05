@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace DirectoryScannerLibrary.Models
@@ -12,18 +13,20 @@ namespace DirectoryScannerLibrary.Models
         private Handler handler;
         private String path;
         private FilesCollection node;
+        internal int ThreadId;
+        internal Thread currThread;
 
         internal DirectoryThread(Handler handler, String path, FilesCollection node)
         {
             this.handler = handler;
             this.path = path;
             this.node = node;
-
+            currThread = Thread.CurrentThread;
         }
 
-        internal void Execute()
+        internal Task Execute()
         {
-            Task.Factory.StartNew(() => handler(new object[] { path, node }));
+            return Task.Factory.StartNew(() => handler(new object[] { path, node }));
         }
     }
 }

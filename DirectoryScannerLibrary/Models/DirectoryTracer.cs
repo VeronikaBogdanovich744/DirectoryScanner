@@ -21,16 +21,15 @@ namespace DirectoryScannerLibrary.Models
         private Dispatcher dispatcher;
         private Semaphore _pool;
         private object locker;
-        private object locker2;
-        //private object threadLocker;
+        private object threadLocker;
         private delegate void DirectoryHandler(object parameters);
-        //private ConcurrentQueue<DirectoryThread> _queue;
-        private bool isWorking = false;
+      //  private bool isWorking = false;
         private CancellationTokenSource cancelToken = new CancellationTokenSource();
         private ParallelOptions parOpts;
         private string startedPath;
+        public FilesCollection Files { get; set; }
+        public ThreadsQueue queue;
 
-        private ConcurrentStack<File> filesForSizeChecking;
 
         private byte percentage = 0;
         public byte Percentage
@@ -39,7 +38,7 @@ namespace DirectoryScannerLibrary.Models
             set { percentage = value; OnPropertyChanged(nameof(Percentage)); }
         }
 
-        //private List<int> threadsId;
+        private List<int> threadsId;
 
         public event PropertyChangedEventHandler? PropertyChanged;
 
@@ -51,11 +50,10 @@ namespace DirectoryScannerLibrary.Models
             }
         }
 
-        public bool IsWorking { get {return isWorking; } 
+      /*  public bool IsWorking { get {return isWorking; } 
             set { isWorking = value; OnPropertyChanged(nameof(IsWorking)); } }
+      */
 
-        public FilesCollection Files { get; set; }
-        ThreadsQueue queue;
 
         public DirectoryTracer()
         {
@@ -63,60 +61,56 @@ namespace DirectoryScannerLibrary.Models
             dispatcher = Dispatcher.CurrentDispatcher;
             locker = new object();
             _pool = new Semaphore(initialCount: 10, maximumCount: 10);
-           // threadsId = new List<int>();
-           // threadLocker = new object();
-           // _queue = new ConcurrentQueue<DirectoryThread>();
+            threadsId = new List<int>();
+            threadLocker = new object();
 
             parOpts = new ParallelOptions();
             parOpts.CancellationToken = cancelToken.Token;
-            IsWorking = false;
+          //  IsWorking = false;
             queue = new ThreadsQueue(parOpts, _pool);
-
-            filesForSizeChecking = new ConcurrentStack<File>();
         }
 
-        public void traceMainDirectory()
+        public void traceMainDirectory(string startedPath)
         {
-            IsWorking = true;
-            startedPath = "C:\\Users\\Veronika\\Downloads";
+            // IsWorking = true;
+           // queue.IsWorking = true;
+            // startedPath = "C:\\Users\\Veronika\\Downloads";
             queue.AddToQueue(startedPath, Files,handleDirectory);
             Task.Factory.StartNew(() => queue.InvokeThreadInQueue());
         }
 
         public void StopTracing()
         {
-
-
-            var values = Files.Values;
-
+            //var values = Files.Values;
             cancelToken.Cancel();
-            getSizes();
+           // queue.FilesStack.getSizes();
+            //queue.IsWorking = false;
+            //IsWorking = false;
 
         }
 
         void handleDirectory(object stateInfo)
         {
             
-           /* lock (threadLocker)
+            lock (threadLocker)
             {
                 threadsId.Add(Thread.CurrentThread.ManagedThreadId);
-            }*/
+            }
 
             Array argArray = new object[2];
             argArray = (Array)stateInfo;
             string path = (string)argArray.GetValue(0);
             FilesCollection node = (FilesCollection)argArray.GetValue(1);
-
             
-
+           
             var currDirectory = AddFiles(node, path);
 
-            AddDirectories(currDirectory, path);
+           // AddDirectories(currDirectory, path);
 
-           /* lock (threadLocker)
+            lock (threadLocker)
             {
                 threadsId.Remove(Thread.CurrentThread.ManagedThreadId);
-            }*/
+            }
             _pool.Release();
         }
 
@@ -124,19 +118,24 @@ namespace DirectoryScannerLibrary.Models
         {
             var currDirectory = new File(directory, dispatcher);
             long directorySize = 0;
+            
+            Thread.Sleep(100);
             lock (locker)
             {
-                Thread.Sleep(200);
+                Thread.Sleep(100);
+                //Thread.Sleep(100);
                 node.Add(currDirectory);
+                queue.AddToStack(currDirectory);
+                // filesForSizeChecking.Push(currDirectory);
+               // fileStack.Add(currDirectory);
+            }
 
-               // if (!filesForSizeChecking.Contains<String>(currDirectory.FullName))
-                filesForSizeChecking.Push(currDirectory);
+            AddDirectories(currDirectory, directory);
 
                 try
                 {
 
                     DirectoryInfo directoryInfo = new DirectoryInfo(currDirectory.FullName);
-                  //  Directory.GetDirectories(directoryInfo).Length;
                     FileInfo[] files = directoryInfo.GetFiles();
                     var filtered = files.Where(f => !f.Attributes.HasFlag(FileAttributes.Hidden));
 
@@ -146,10 +145,12 @@ namespace DirectoryScannerLibrary.Models
                         {
                             break;
                         }
-                        Thread.Sleep(100);
-                        
-                        currDirectory.Files.Add(new File(f.FullName,f.Length, dispatcher));
-                       // directorySize += f.Length;
+                       
+                    Thread.Sleep(100);
+                    lock (locker)
+                    {
+                        currDirectory.Files.Add(new File(f.FullName, f.Length, dispatcher));
+                    }
                     }
                 }
                 catch (UnauthorizedAccessException)
@@ -157,7 +158,7 @@ namespace DirectoryScannerLibrary.Models
 
                 }
 
-            }
+            
             return currDirectory;
         }
 
@@ -181,30 +182,12 @@ namespace DirectoryScannerLibrary.Models
                             break;
                         }
                         queue.AddToQueue(d.FullName, currDirectory.Files, handleDirectory);
-
                     }
                 }
             }
             catch (UnauthorizedAccessException)
             {
 
-            }
-        }
-
-        private void getSizes()
-        {
-            File directory;
-            while (filesForSizeChecking.Count > 0)
-            {
-                filesForSizeChecking.TryPop(out directory);
-                long size = 0;
-
-                foreach (var file in directory.Files)
-                {
-                    size += file.Value.Size;
-                }
-
-                directory.Size = size;
             }
         }
 

@@ -1,4 +1,6 @@
-﻿using Microsoft.Windows.Themes;
+﻿using DirectoryScannerLibrary;
+using Microsoft.Win32;
+using Microsoft.Windows.Themes;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -29,6 +31,12 @@ namespace DirectoryScanner
         {
             InitializeComponent();
 
+            //Mock<IOService> ioServiceStub = new Mock<IOService>();
+            // OpenFileDialog openFileDialog = new OpenFileDialog();
+
+            //We use null to indicate invalid path in our implementation
+
+          
             viewModel = new DirectoryScannerLibrary.ViewModels.ViewModel();
             treeView1.ItemsSource = viewModel.directoryTracer.Files;
 

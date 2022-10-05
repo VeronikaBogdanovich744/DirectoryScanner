@@ -1,40 +1,29 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Controls;
-using System.Windows;
+﻿
 using System.ComponentModel;
-using System.Runtime.CompilerServices;
-using System.Collections.ObjectModel;
-using System.Xml.Linq;
-using System.Threading;
-using System.Windows.Threading;
-using Microsoft.VisualBasic;
-using System.Windows.Data;
-using System.Windows.Shapes;
 using DirectoryScannerLibrary.Commands;
-using System.Windows.Input;
 using DirectoryScannerLibrary.Models;
+using Microsoft.Win32;
+
 
 namespace DirectoryScannerLibrary.ViewModels
 {
-    public class ViewModel { 
+    public class ViewModel:INotifyPropertyChanged
+    { 
 
        public RelayCommand TraceDirectoryButton { get; }
 
         public RelayCommand StopDirectoryButton { get; }
 
-      
+        public RelayCommand OpenFileDialogButton { get; }
+
         public DirectoryTracer directoryTracer { get; }
+
         public ViewModel()
         {
             directoryTracer = new DirectoryTracer();
 
             TraceDirectoryButton = new RelayCommand(obj=> { 
-                directoryTracer.traceMainDirectory(); 
+                directoryTracer.traceMainDirectory(SelectedPath); 
             }
             );
 
@@ -43,6 +32,39 @@ namespace DirectoryScannerLibrary.ViewModels
             }
             );
 
+            OpenFileDialogButton = new RelayCommand(obj => {
+                OpenFile();
+            }
+            );
+
+        }
+
+        private string _selectedPath;
+
+        public event PropertyChangedEventHandler? PropertyChanged;
+
+        protected void OnPropertyChanged(string propertyName)
+        {
+            if (PropertyChanged != null)
+            {
+                PropertyChanged(this, new PropertyChangedEventArgs(propertyName));
+            }
+        }
+
+        public string SelectedPath
+        {
+            get { return _selectedPath; }
+            set { _selectedPath = value; OnPropertyChanged(nameof(SelectedPath)); }
+        }
+
+        private void OpenFile()
+        {
+
+            var dlg = new FolderBrowserForWPF.Dialog();
+            if (dlg.ShowDialog() == true)
+            {
+                SelectedPath = dlg.FileName;
+            }
         }
 
 
