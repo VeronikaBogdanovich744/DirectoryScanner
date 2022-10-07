@@ -116,7 +116,7 @@ namespace DirectoryScannerLibrary.Models
 
         private File AddFiles(FilesCollection node, string directory)
         {
-            var currDirectory = new File(directory, dispatcher);
+            var currDirectory = new File(directory, dispatcher,true);
             long directorySize = 0;
             
             Thread.Sleep(100);
@@ -149,7 +149,7 @@ namespace DirectoryScannerLibrary.Models
                     Thread.Sleep(100);
                     lock (locker)
                     {
-                        currDirectory.Files.Add(new File(f.FullName, f.Length, dispatcher));
+                        currDirectory.Files.Add(new File(f.FullName, f.Length, dispatcher,false));
                     }
                     }
                 }

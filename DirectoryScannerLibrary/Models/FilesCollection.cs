@@ -38,6 +38,7 @@ namespace DirectoryScannerLibrary.Models
             dispatcher = _dispatcher;
         }
 
+
         public new void Add(File file)
         {
            var res =  base.TryAdd(file.FullName,file);

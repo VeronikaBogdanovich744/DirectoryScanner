@@ -37,6 +37,8 @@ namespace DirectoryScannerLibrary.ViewModels
             }
             );
 
+
+        
         }
 
         private string _selectedPath;

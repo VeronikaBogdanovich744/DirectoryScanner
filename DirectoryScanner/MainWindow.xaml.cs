@@ -19,6 +19,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 using System.Xml.Linq;
+using DirectoryScannerConverters;
 
 using static System.Net.WebRequestMethods;
 
