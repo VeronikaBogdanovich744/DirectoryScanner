@@ -27,12 +27,12 @@ namespace DirectoryScanner
 {
     public partial class MainWindow : Window
     {
-        public /*DirectoryScannerLibrary.ViewModels.*/ViewModel viewModel { get; set; }
+        public ViewModel viewModel { get; set; }
         public MainWindow()
         {
             InitializeComponent();
           
-            viewModel = new /*DirectoryScannerLibrary.ViewModels.*/ViewModel();
+            viewModel = new ViewModel();
             treeView1.ItemsSource = viewModel.directoryTracer.Files;
 
             this.DataContext = viewModel;

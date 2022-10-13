@@ -13,17 +13,14 @@ using System.Windows.Threading;
 
 namespace DirectoryScannerLibrary.Models
 {
-    public class DirectoryTracer: PropertyChangedClass// INotifyPropertyChanged
+    public class DirectoryTracer: PropertyChangedClass
     {
-        private const int MAX_THREADS = 1;
+        private const int MAX_THREADS = 10;
         private Dispatcher dispatcher;
         private Semaphore _pool;
         private object locker;
-      //  private object threadLocker;
-       // private delegate void DirectoryHandler(object parameters);
-        private CancellationTokenSource cancelToken;// = new CancellationTokenSource();
+        private CancellationTokenSource cancelToken;
         private ParallelOptions parOpts;
-        //private string startedPath;
         public FilesCollection Files { get; set; }
         public ThreadsQueue queue { get; }
 
@@ -36,8 +33,6 @@ namespace DirectoryScannerLibrary.Models
             get { return percentage; }
             set { percentage = value; OnPropertyChanged(nameof(Percentage)); }
         }
-
-       // private List<int> threadsId;
 
         public DirectoryTracer()
         {
