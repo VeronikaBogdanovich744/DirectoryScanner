@@ -5,9 +5,9 @@ using DirectoryScannerLibrary.Models;
 using Microsoft.Win32;
 
 
-namespace DirectoryScannerLibrary.ViewModels
+namespace DirectoryScanner
 {
-    public class ViewModel: PropertyChangedClass
+    public class ViewModel: DirectoryScannerLibrary.PropertyChangedClass
     { 
 
        public RelayCommand TraceDirectoryButton { get; }

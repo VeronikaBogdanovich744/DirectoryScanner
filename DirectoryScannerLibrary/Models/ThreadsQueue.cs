@@ -8,37 +8,33 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml.Linq;
+using static DirectoryScannerLibrary.Models.ScanningMethod;
 
 namespace DirectoryScannerLibrary.Models
 {
-    public class ThreadsQueue
+    public class ThreadsQueue: PropertyChangedClass
     {
-        private ConcurrentQueue<DirectoryThread> queue;
-        private object threadLocker;
-        internal delegate void DirectoryHandler(object parameters);
+        private ConcurrentQueue<ScanningMethod> queue;
         private ParallelOptions parOpts;
         private Semaphore _pool;
         internal FilesStack FilesStack;
-        //private List<Thread> threads;
+
+        private int isWorking;
+        public int IsWorking { get { return isWorking; } set { isWorking = value;
+                OnPropertyChanged(nameof(IsWorking)); } }
 
         internal ThreadsQueue(ParallelOptions parallelOptions, Semaphore pool)
         {
-            queue = new ConcurrentQueue<DirectoryThread>();
-            threadLocker = new object();
+           
+            queue = new ConcurrentQueue<ScanningMethod>();
             parOpts=parallelOptions;
             _pool=pool;
             FilesStack = new FilesStack();
-           // threads = new List<Thread>();
         }
 
-        internal void AddToQueue(String directory_, FilesCollection files, DirectoryHandler handleDirectory)
+        internal void AddToQueue(WaitCallback waitCallback,String directory_, FilesCollection files)
         {
-            DirectoryThread.Handler handler = new DirectoryThread.Handler(handleDirectory);
-            lock (threadLocker)
-            {
-                queue.Enqueue(new DirectoryThread(handler, directory_, files));
-            }
-
+            queue.Enqueue(new ScanningMethod(waitCallback, directory_, files));
         }
         internal void AddToStack(File file)
         {
@@ -47,37 +43,39 @@ namespace DirectoryScannerLibrary.Models
 
         internal void InvokeThreadInQueue()
         {
-            bool isFirstLoop = true;
-            List<Task> tasks = new List<Task>();
+            IsWorking = 1;
+            int internalNumOfThreads;
+            int num1, num2;
+            ThreadPool.GetAvailableThreads(out internalNumOfThreads,out num2);
             do
             {
                 while (!queue.IsEmpty)
                 {
+                    while (!queue.IsEmpty && !parOpts.CancellationToken.IsCancellationRequested)
+                    {
+                        _pool.WaitOne();
+                        ScanningMethod thread;
+                        if (queue.TryDequeue(out thread))
+                        {
+                            ThreadPool.QueueUserWorkItem(thread.waitCallback, thread.sources); 
 
+                        }
+                    }
                     if (parOpts.CancellationToken.IsCancellationRequested)
                     {
+                        IsWorking = 2;
                         break;
                     }
-                    _pool.WaitOne();
-                    DirectoryThread thread;
-                    if (queue.TryDequeue(out thread))
-                    {
-                        tasks.Add(thread.Execute());
-                       // threads.Add(thread.currThread);
-                    }
-
-                    if (isFirstLoop)
-                    {
-                        isFirstLoop = false;
-                        Task.WaitAll(tasks.ToArray(), parOpts.CancellationToken);
-                    }
+                    Thread.Sleep(500);
                 }
-               if (Task.WaitAll(tasks.ToArray(),1000) && queue.IsEmpty)
-                    break;
-            } while (!parOpts.CancellationToken.IsCancellationRequested);
 
-            Task.Factory.StartNew(() => FilesStack.getSizes());
+                ThreadPool.GetAvailableThreads(out num1, out num2);
+            } while (internalNumOfThreads- num1 !=0 && !parOpts.CancellationToken.IsCancellationRequested);
+            IsWorking = 2;
+          //  Task.Factory.StartNew(() => FilesStack.getSizes());
+            FilesStack.getSizes();
             queue.Clear();
+            IsWorking = 3;
         }
 
       

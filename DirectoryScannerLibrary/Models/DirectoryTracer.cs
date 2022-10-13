@@ -8,27 +8,26 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Windows.Controls;
-using System.Windows.Shapes;
 using System.Windows.Threading;
-using static System.Net.WebRequestMethods;
+//using static System.Net.WebRequestMethods;
 
 namespace DirectoryScannerLibrary.Models
 {
-    public class DirectoryTracer: INotifyPropertyChanged
+    public class DirectoryTracer: PropertyChangedClass// INotifyPropertyChanged
     {
-
+        private const int MAX_THREADS = 1;
         private Dispatcher dispatcher;
         private Semaphore _pool;
         private object locker;
-        private object threadLocker;
-        private delegate void DirectoryHandler(object parameters);
-      //  private bool isWorking = false;
-        private CancellationTokenSource cancelToken = new CancellationTokenSource();
+      //  private object threadLocker;
+       // private delegate void DirectoryHandler(object parameters);
+        private CancellationTokenSource cancelToken;// = new CancellationTokenSource();
         private ParallelOptions parOpts;
-        private string startedPath;
+        //private string startedPath;
         public FilesCollection Files { get; set; }
-        public ThreadsQueue queue;
+        public ThreadsQueue queue { get; }
+
+        private string mainDirectoryPath;
 
 
         private byte percentage = 0;
@@ -38,131 +37,93 @@ namespace DirectoryScannerLibrary.Models
             set { percentage = value; OnPropertyChanged(nameof(Percentage)); }
         }
 
-        private List<int> threadsId;
-
-        public event PropertyChangedEventHandler? PropertyChanged;
-
-        protected void OnPropertyChanged(string propertyName)
-        {
-            if (PropertyChanged != null)
-            {
-                PropertyChanged(this, new PropertyChangedEventArgs(propertyName));
-            }
-        }
-
-      /*  public bool IsWorking { get {return isWorking; } 
-            set { isWorking = value; OnPropertyChanged(nameof(IsWorking)); } }
-      */
-
+       // private List<int> threadsId;
 
         public DirectoryTracer()
         {
             Files = new FilesCollection();
             dispatcher = Dispatcher.CurrentDispatcher;
             locker = new object();
-            _pool = new Semaphore(initialCount: 10, maximumCount: 10);
-            threadsId = new List<int>();
-            threadLocker = new object();
+            _pool = new Semaphore(initialCount: MAX_THREADS, maximumCount: MAX_THREADS);
 
             parOpts = new ParallelOptions();
-            parOpts.CancellationToken = cancelToken.Token;
-          //  IsWorking = false;
             queue = new ThreadsQueue(parOpts, _pool);
         }
 
         public void traceMainDirectory(string startedPath)
         {
-            // IsWorking = true;
-           // queue.IsWorking = true;
-            // startedPath = "C:\\Users\\Veronika\\Downloads";
-            queue.AddToQueue(startedPath, Files,handleDirectory);
+            cancelToken = new CancellationTokenSource();
+            parOpts.CancellationToken = cancelToken.Token;
+            Files.Clear();
+            mainDirectoryPath = startedPath;
+            queue.AddToQueue(new WaitCallback(handleDirectory),startedPath, Files);
             Task.Factory.StartNew(() => queue.InvokeThreadInQueue());
         }
 
         public void StopTracing()
         {
-            //var values = Files.Values;
+            if(cancelToken!=null)
             cancelToken.Cancel();
-           // queue.FilesStack.getSizes();
-            //queue.IsWorking = false;
-            //IsWorking = false;
-
+            queue.IsWorking = 2;
         }
 
-        void handleDirectory(object stateInfo)
+        private void getValuesFromObject(object stateInfo, out string path,out FilesCollection node)
         {
-            
-            lock (threadLocker)
-            {
-                threadsId.Add(Thread.CurrentThread.ManagedThreadId);
-            }
-
-            Array argArray = new object[2];
-            argArray = (Array)stateInfo;
-            string path = (string)argArray.GetValue(0);
-            FilesCollection node = (FilesCollection)argArray.GetValue(1);
-            
-           
-            var currDirectory = AddFiles(node, path);
-
-           // AddDirectories(currDirectory, path);
-
-            lock (threadLocker)
-            {
-                threadsId.Remove(Thread.CurrentThread.ManagedThreadId);
-            }
+            Array argArray = (Array)stateInfo;
+            path = (string)argArray.GetValue(0);
+            node = (FilesCollection)argArray.GetValue(1);
+        }
+        public void handleDirectory(object stateInfo)
+        {
+            string path;
+            FilesCollection node;
+            getValuesFromObject(stateInfo,out path,out node);
+            AddDirectoryToCollection(node, path);
             _pool.Release();
         }
-
-        private File AddFiles(FilesCollection node, string directory)
+        private void  AddDirectoryToCollection(FilesCollection node, string directory)
         {
             var currDirectory = new File(directory, dispatcher,true);
-            long directorySize = 0;
-            
-            Thread.Sleep(100);
-            lock (locker)
+            if (mainDirectoryPath == directory)
             {
-                Thread.Sleep(100);
-                //Thread.Sleep(100);
-                node.Add(currDirectory);
-                queue.AddToStack(currDirectory);
-                // filesForSizeChecking.Push(currDirectory);
-               // fileStack.Add(currDirectory);
+                currDirectory.Percantage = 100;
             }
-
-            AddDirectories(currDirectory, directory);
-
-                try
-                {
-
-                    DirectoryInfo directoryInfo = new DirectoryInfo(currDirectory.FullName);
-                    FileInfo[] files = directoryInfo.GetFiles();
-                    var filtered = files.Where(f => !f.Attributes.HasFlag(FileAttributes.Hidden));
-
-                    foreach (var f in filtered)
-                    {
-                        if (parOpts.CancellationToken.IsCancellationRequested)
-                        {
-                            break;
-                        }
-                       
-                    Thread.Sleep(100);
-                    lock (locker)
-                    {
-                        currDirectory.Files.Add(new File(f.FullName, f.Length, dispatcher,false));
-                    }
-                    }
-                }
-                catch (UnauthorizedAccessException)
-                {
-
-                }
-
             
-            return currDirectory;
+            Thread.Sleep(200);
+            node.Add(currDirectory);
+            queue.AddToStack(currDirectory);
+
+            AddDirectories(currDirectory);
+            AddFiles(currDirectory);
         }
 
-        private void AddDirectories(File currDirectory, string directory)
+        private void AddFiles(File currDirectory)
+        {
+            try
+            {
+
+                DirectoryInfo directoryInfo = new DirectoryInfo(currDirectory.FullName);
+                FileInfo[] files = directoryInfo.GetFiles();
+                var filtered = files.Where(f => !f.Attributes.HasFlag(FileAttributes.Hidden));
+
+                foreach (var f in filtered)
+                {
+                    if (parOpts.CancellationToken.IsCancellationRequested)
+                    {
+                        break;
+                    }
+
+                        Thread.Sleep(200); //under the question
+                        currDirectory.Files.Add(new File(f.FullName, f.Length, dispatcher, false));
+                }
+            }
+            catch (UnauthorizedAccessException)
+            {
+
+            }
+        }
+
+        private void AddDirectories(File currDirectory)
         {
             try
             {
@@ -175,14 +136,11 @@ namespace DirectoryScannerLibrary.Models
                 foreach (var d in filtered)
                 {
 
-                    lock (locker)
+                    if (parOpts.CancellationToken.IsCancellationRequested)
                     {
-                        if (parOpts.CancellationToken.IsCancellationRequested)
-                        {
-                            break;
-                        }
-                        queue.AddToQueue(d.FullName, currDirectory.Files, handleDirectory);
+                        break;
                     }
+                    queue.AddToQueue(new WaitCallback(handleDirectory),d.FullName, currDirectory.Files);
                 }
             }
             catch (UnauthorizedAccessException)

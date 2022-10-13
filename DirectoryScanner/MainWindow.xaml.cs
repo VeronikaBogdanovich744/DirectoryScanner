@@ -27,22 +27,15 @@ namespace DirectoryScanner
 {
     public partial class MainWindow : Window
     {
-        public DirectoryScannerLibrary.ViewModels.ViewModel viewModel { get; set; }
+        public /*DirectoryScannerLibrary.ViewModels.*/ViewModel viewModel { get; set; }
         public MainWindow()
         {
             InitializeComponent();
-
-            //Mock<IOService> ioServiceStub = new Mock<IOService>();
-            // OpenFileDialog openFileDialog = new OpenFileDialog();
-
-            //We use null to indicate invalid path in our implementation
-
           
-            viewModel = new DirectoryScannerLibrary.ViewModels.ViewModel();
+            viewModel = new /*DirectoryScannerLibrary.ViewModels.*/ViewModel();
             treeView1.ItemsSource = viewModel.directoryTracer.Files;
 
             this.DataContext = viewModel;
-
         }
         
     }

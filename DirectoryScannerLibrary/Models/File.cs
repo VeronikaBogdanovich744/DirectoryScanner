@@ -14,39 +14,32 @@ using System.Windows.Threading;
 
 namespace DirectoryScannerLibrary.Models
 {
-    public class File:INotifyPropertyChanged
+    public class File:PropertyChangedClass//INotifyPropertyChangeded
     {
-        public File(string name)
+        private bool isDirectory;
+        public bool IsDirectory { get { return isDirectory; } set { isDirectory = value; OnPropertyChanged(nameof(Name)); } }
+
+        private double percantage;
+        public double Percantage
         {
-            Name = name;
-            Files = new FilesCollection();
+            get { return percantage; }
+            set { percantage = value; OnPropertyChanged(nameof(Percantage)); }
         }
 
-        public File(string fullname,Dispatcher dispatcher)
-        {
-            FullName = fullname;
-            Name = System.IO.Path.GetFileName(fullname);
-            //Name = name;
-            Files = new FilesCollection(dispatcher);
-            id = base.GetHashCode(); 
-        }
+        private string name;
+        public string Name { get { return name; } set { name = value; OnPropertyChanged(nameof(Name)); } }
+        public string FullName { get; set; }
 
-        public File(string fullname, long size, Dispatcher dispatcher)
-        {
-            FullName = fullname;
-            Name = System.IO.Path.GetFileName(fullname);
-            Files = new FilesCollection(dispatcher);
-            Size = size;
-            id = base.GetHashCode();
-        }
+        private long size;
+        public long Size { get { return size; } set { size = value; OnPropertyChanged(nameof(Size)); } }
 
+        public FilesCollection Files { get; set; }
         public File(string fullname, long size, Dispatcher dispatcher, bool _isDirectory)
         {
             FullName = fullname;
             Name = System.IO.Path.GetFileName(fullname);
             Files = new FilesCollection(dispatcher);
             Size = size;
-            id = base.GetHashCode();
             this.IsDirectory = _isDirectory;
         }
 
@@ -54,32 +47,8 @@ namespace DirectoryScannerLibrary.Models
         {
             FullName = fullname;
             Name = System.IO.Path.GetFileName(fullname);
-            //Name = name;
             Files = new FilesCollection(dispatcher);
-            id = base.GetHashCode();
             this.IsDirectory = _isDirectory;
-        }
-
-        private bool isDirectory;
-        public bool IsDirectory { get { return isDirectory; } set { isDirectory = value; OnPropertyChanged(nameof(Name)); } }
-        
-        private string name;
-        public string Name  {get { return name; } set { name = value; OnPropertyChanged(nameof(Name)); } }
-
-        public string FullName { get; set; }
-
-        private long size;
-        public long Size { get { return size; } set { size = value; OnPropertyChanged(nameof(Size)); } }
-
-       
-        public int id { get; private set; }
-
-        public FilesCollection Files { get; set; }
-        public event PropertyChangedEventHandler? PropertyChanged;
-
-        private void OnPropertyChanged([CallerMemberName] String propertyName = "")
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
     }
 }

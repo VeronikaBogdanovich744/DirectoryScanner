@@ -14,20 +14,16 @@ namespace DirectoryScannerLibrary.Models
     public class FilesCollection : ConcurrentDictionary<String,File>, INotifyCollectionChanged
     {
         public event NotifyCollectionChangedEventHandler? CollectionChanged;
-
+        public void OnCollectionChanged()
+        {
+            if (CollectionChanged != null)
+            {
+                dispatcher.BeginInvoke(DispatcherPriority.Background, new Action(() => CollectionChanged(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset))));
+            }
+        }
 
         private Dispatcher dispatcher;
 
-        public void OnCollectionChanged()
-        {
-
-            if (CollectionChanged != null)
-            {
-                
-                    dispatcher.BeginInvoke(DispatcherPriority.Background, new Action(() => CollectionChanged(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset))));
-                
-                }
-        }
         public FilesCollection() : base()
         {
             dispatcher = Dispatcher.CurrentDispatcher;
@@ -37,8 +33,6 @@ namespace DirectoryScannerLibrary.Models
         {
             dispatcher = _dispatcher;
         }
-
-
         public new void Add(File file)
         {
            var res =  base.TryAdd(file.FullName,file);

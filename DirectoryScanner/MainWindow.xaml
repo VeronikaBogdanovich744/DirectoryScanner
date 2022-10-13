@@ -10,25 +10,24 @@
         Title="MainWindow" Height="770" Width="1000" Background="Gray">
     <Window.Resources >
         <BooleanToVisibilityConverter x:Key="BoolToVisibilityConverter" />
+        <conv:IntToIsWorkingConverter x:Key="IntToStrConv"/>
         <conv:BoolToImageConverter x:Key="BoolToImageConv"/>
     </Window.Resources>
     <Grid Margin="0,0,0,3">
+        <TextBox Margin="0,17,263,675" FontSize="16" Text="{Binding SelectedPath}"/>
         <TreeView x:Name="treeView1" Margin="0,86,263,0" >
             <TreeView.ItemTemplate>
 
                 <HierarchicalDataTemplate ItemsSource="{Binding Path = Value.Files}">
                     <StackPanel Orientation="Horizontal">
                         <Image x:Name="img" Source="{Binding Path= Value.IsDirectory, Converter={StaticResource BoolToImageConv}}"  Width="16" Height="16" Stretch="Fill"/>
-                        
-                       <!-- <Image Name="img" Width="16" Height="16" Stretch="Fill" 
-                                                  Source="C://Users//Veronika//Documents//work//5 сем//СПП//LR3//file.png" />
-                       -->
                         <TextBlock>
 
                             <TextBlock.Text>
-                                <MultiBinding StringFormat="{} {0} ({1} байт)">
+                                <MultiBinding StringFormat="{} {0} ({1} байт, {2:N2}%)">
                                     <Binding Path="Value.Name" />
                                     <Binding Path="Value.Size" />
+                                    <Binding Path="Value.Percantage" />
                                 </MultiBinding>
                             </TextBlock.Text>
                         </TextBlock>
@@ -45,11 +44,15 @@
             </TreeView.ItemContainerStyle>
         </TreeView>
 
-       <!-- <BitmapImage x:Key="Icon_FolderOpen"   UriSource="C://Users//Veronika//Documents//work//5 сем//СПП//LR3//file.png"   />
-        <BitmapImage x:Key="Icon_FolderClosed" UriSource="C://Users//Veronika//Documents//work//5 сем//СПП//LR3//folder.png" />-->
-
-        <!-- <fa:ImageAwesome x:Name="IconSpinner" DataContext="{Binding Path=directoryTracer.queue}"  Icon="Spinner" Visibility="{Binding Path=IsWorking, Converter={StaticResource BoolToVisibilityConverter}}" Spin="True" Height="48" Width="48" RenderTransformOrigin="0.592,0.571" Margin="841,243,111,463" />
-        <ProgressBar Minimum="0" Maximum="100" Value="75" Height="20" Width="200" Margin="789,366,11,365"/>-->
+        <Button x:Name="openFileDialogButton" 
+                Margin="0,17,10,661" Width="236"
+                Content="Choose file" 
+                RenderTransformOrigin="0.506,0.521"
+                HorizontalAlignment="Right" 
+                BorderBrush="#FF130F0F" 
+                IsEnabled="True" 
+                Background="White" 
+                Command="{Binding OpenFileDialogButton}"/>
 
         <Button x:Name="startButton" 
                 Margin="0,121,10,557" Width="236"
@@ -61,22 +64,13 @@
                 Background="White" 
                 Command="{Binding TraceDirectoryButton}"/>
 
-        <Button x:Name="openFileDialogButton" 
-                Margin="0,17,10,661" Width="236"
-                Content="Choose file" 
-                RenderTransformOrigin="0.506,0.521"
-                HorizontalAlignment="Right" 
-                BorderBrush="#FF130F0F" 
-                IsEnabled="True" 
-                Background="White" 
-                Command="{Binding OpenFileDialogButton}"/>
-
-        <TextBox Margin="10,17,263,675" FontSize="16" Text="{Binding SelectedPath}"/>
-
+        <Label Content="{Binding Path= directoryTracer.queue.IsWorking, Converter={StaticResource IntToStrConv}}" FontSize="40"  Margin="754,226,10,398" ></Label>
         <Button x:Name="stopButton" 
                 Content="Stop"
                 Margin="754,531,10,147"
                 Command="{Binding StopDirectoryButton}"
                 />
+   
+
     </Grid>
 </Window>
